@@ -22,6 +22,11 @@ const seedDemo = async () => {
     },
     simulationsCount: 3,
     chatSessionsCount: 7,
+    modelPreferences: {
+      preferredLLMModel: 'gpt-3.5-turbo',
+      preferredRAGFramework: 'langchain',
+      preferredEmbeddingModel: 'openai-embeddings'
+    },
     createdAt: new Date('2024-01-15')
   };
   users.set('demo@lifetwin.ai', demoUser);
@@ -112,6 +117,11 @@ const createUser = async ({ name, email, password }) => {
       preferences: [],
       habits: [],
       completionScore: 0
+    },
+    modelPreferences: {
+      preferredLLMModel: 'gpt-3.5-turbo',
+      preferredRAGFramework: 'langchain',
+      preferredEmbeddingModel: 'openai-embeddings'
     },
     simulationsCount: 0,
     chatSessionsCount: 0,

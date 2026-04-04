@@ -1,6 +1,6 @@
 const express = require('express');
 const authMiddleware = require('../middleware/auth');
-const { generateTwinProfile, generateTwinResponse } = require('../services/openai');
+const { generateTwinProfile, generateTwinResponse } = require('../services/modelManager');
 const { getUserById } = require('../services/mockDb');
 
 const router = express.Router();
@@ -33,8 +33,9 @@ router.post('/train', async (req, res) => {
       return res.status(400).json({ message: 'Messages array required' });
     }
 
-    const profile = await generateTwinProfile({ messages });
     const user = getUserById(req.userId);
+    const preferredModel = user?.modelPreferences?.preferredLLMModel;
+    const profile = await generateTwinProfile({ messages }, preferredModel);
     const currentScore = user?.twinProfile?.completionScore || 0;
     const newScore = Math.min(100, currentScore + 15);
 
@@ -95,7 +96,8 @@ router.post('/generate', async (req, res) => {
     if (!message) return res.status(400).json({ message: 'Message required' });
 
     const user = getUserById(req.userId);
-    const response = await generateTwinResponse(message, 'twin', user?.twinProfile);
+    const preferredModel = user?.modelPreferences?.preferredLLMModel;
+    const response = await generateTwinResponse(message, 'twin', user?.twinProfile, preferredModel);
     res.json({ response });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

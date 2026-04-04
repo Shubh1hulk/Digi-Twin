@@ -4,13 +4,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getToken, getUser } from '@/lib/auth';
-import { chatAPI } from '@/lib/api';
+import { chatAPI, modelsAPI } from '@/lib/api';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: string;
 }
+
+const MODEL_DISPLAY: Record<string, string> = {
+  'gpt-4': 'GPT-4',
+  'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+  'claude-3-opus': 'Claude 3 Opus',
+  'claude-3-sonnet': 'Claude 3 Sonnet',
+  'llama-2': 'Llama 2',
+  'mistral-7b': 'Mistral 7B',
+  'gemini-pro': 'Gemini Pro',
+};
 
 const SUGGESTIONS = {
   twin: [
@@ -34,6 +44,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [activeModel, setActiveModel] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const user = getUser();
 
@@ -42,8 +53,10 @@ export default function ChatPage() {
     : `I'm the advisor version of you — a wiser future self. I can give you advice based on your personality, goals, and patterns. What guidance do you need?`;
 
   useEffect(() => {
-    if (!getToken()) { router.push('/auth/login'); return; }
+    const token = getToken();
+    if (!token) { router.push('/auth/login'); return; }
     setMessages([{ role: 'assistant', content: getGreeting(mode) }]);
+    modelsAPI.getPreferences(token).then(p => setActiveModel(MODEL_DISPLAY[p.preferredLLMModel] || p.preferredLLMModel)).catch(() => {});
   }, [mode, router]);
 
   useEffect(() => {
@@ -94,6 +107,12 @@ export default function ChatPage() {
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Link href="/dashboard" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 14 }}>← Dashboard</Link>
+          {activeModel && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)', borderRadius: 8, padding: '4px 10px' }}>
+              <span style={{ fontSize: 12 }}>🤖</span>
+              <span style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600 }}>{activeModel}</span>
+            </div>
+          )}
           <span style={{ color: '#9ca3af', fontSize: 14 }}>{user?.name}</span>
         </div>
       </header>

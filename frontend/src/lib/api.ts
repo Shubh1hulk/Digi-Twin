@@ -19,3 +19,8 @@ export const chatAPI = {
   sendMessage: (token:string,message:string,mode:string) => fetch(`${API_URL}/api/chat/message`,{method:'POST',headers:h(token),body:JSON.stringify({message,mode})}).then(handle),
   getHistory: (token:string) => fetch(`${API_URL}/api/chat/history`,{headers:h(token)}).then(handle),
 };
+export const modelsAPI = {
+  getAvailable: (token:string) => fetch(`${API_URL}/api/models/available`,{headers:h(token)}).then(handle),
+  getPreferences: (token:string) => fetch(`${API_URL}/api/models/preferences`,{headers:h(token)}).then(handle),
+  savePreferences: (token:string, prefs: Record<string,string>) => fetch(`${API_URL}/api/models/preferences`,{method:'PUT',headers:h(token),body:JSON.stringify(prefs)}).then(handle),
+};

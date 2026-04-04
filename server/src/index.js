@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const twinRoutes = require('./routes/twin');
 const simulatorRoutes = require('./routes/simulator');
 const chatRoutes = require('./routes/chat');
+const modelsRoutes = require('./routes/models');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,6 +22,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/twin', twinRoutes);
 app.use('/api/simulator', simulatorRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/models', modelsRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

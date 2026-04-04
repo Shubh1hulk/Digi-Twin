@@ -1,6 +1,7 @@
 export interface User {
   id: string; name: string; email: string;
   twinProfile?: { communicationStyle:string; tone:string; preferences:string[]; habits:string[]; completionScore:number; };
+  modelPreferences?: { preferredLLMModel:string; preferredRAGFramework:string; preferredEmbeddingModel:string; };
   simulationsCount?: number; chatSessionsCount?: number;
 }
 export const getToken = (): string | null => { if (typeof window==='undefined') return null; return localStorage.getItem('lifetwin_token'); };

@@ -5,7 +5,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { getToken, getUser } from '@/lib/auth';
-import { simulatorAPI } from '@/lib/api';
+import { simulatorAPI, modelsAPI } from '@/lib/api';
+
+const MODEL_DISPLAY: Record<string, string> = {
+  'gpt-4': 'GPT-4',
+  'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+  'claude-3-opus': 'Claude 3 Opus',
+  'claude-3-sonnet': 'Claude 3 Sonnet',
+  'llama-2': 'Llama 2',
+  'mistral-7b': 'Mistral 7B',
+  'gemini-pro': 'Gemini Pro',
+};
 
 const EXAMPLE_DECISIONS = [
   '🚀 Should I quit my job and start my own business?',
@@ -42,13 +52,17 @@ export default function SimulatorPage() {
   const [history, setHistory] = useState<SimResult[]>([]);
   const [activeScenario, setActiveScenario] = useState(0);
   const [error, setError] = useState('');
+  const [activeModel, setActiveModel] = useState('');
   const user = getUser();
 
   useEffect(() => {
-    if (!getToken()) { router.push('/auth/login'); return; }
-    const token = getToken()!;
+    const token = getToken();
+    if (!token) { router.push('/auth/login'); return; }
     simulatorAPI.getHistory(token)
       .then(d => setHistory(d.simulations || []))
+      .catch(() => {});
+    modelsAPI.getPreferences(token)
+      .then(p => setActiveModel(MODEL_DISPLAY[p.preferredLLMModel] || p.preferredLLMModel))
       .catch(() => {});
   }, [router]);
 
@@ -80,6 +94,12 @@ export default function SimulatorPage() {
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Link href="/dashboard" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 14 }}>← Dashboard</Link>
+          {activeModel && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)', borderRadius: 8, padding: '4px 10px' }}>
+              <span style={{ fontSize: 12 }}>🤖</span>
+              <span style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600 }}>{activeModel}</span>
+            </div>
+          )}
           <span style={{ color: '#9ca3af', fontSize: 14 }}>{user?.name}</span>
         </div>
       </header>
