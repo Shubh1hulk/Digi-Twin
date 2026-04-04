@@ -1,6 +1,6 @@
 const express = require('express');
 const authMiddleware = require('../middleware/auth');
-const { simulateDecision } = require('../services/openai');
+const { simulateDecision } = require('../services/modelManager');
 const { simulations, getUserById } = require('../services/mockDb');
 const router = express.Router();
 router.use(authMiddleware);
@@ -10,7 +10,8 @@ router.post('/simulate', async (req, res) => {
     const { decision } = req.body;
     if (!decision) return res.status(400).json({ message: 'Decision text required' });
     const user = getUserById(req.userId);
-    const scenarios = await simulateDecision(decision, user?.twinProfile);
+    const preferredModel = user?.modelPreferences?.preferredLLMModel;
+    const scenarios = await simulateDecision(decision, user?.twinProfile, preferredModel);
     const simulation = { _id: `sim-${Date.now()}`, userId: req.userId, decision, scenarios, createdAt: new Date() };
     if (!useDB()) {
       simulations.push(simulation);

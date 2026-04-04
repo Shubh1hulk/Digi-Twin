@@ -11,6 +11,11 @@ const userSchema = new mongoose.Schema({
     habits: [String],
     completionScore: { type: Number, default: 0 }
   },
+  modelPreferences: {
+    preferredLLMModel: { type: String, default: 'gpt-3.5-turbo' },
+    preferredRAGFramework: { type: String, default: 'langchain' },
+    preferredEmbeddingModel: { type: String, default: 'openai-embeddings' }
+  },
   simulationsCount: { type: Number, default: 0 },
   chatSessionsCount: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }

@@ -4,15 +4,32 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getUser, getToken, clearAuth } from '@/lib/auth';
-import { simulatorAPI, twinAPI } from '@/lib/api';
+import { simulatorAPI, twinAPI, modelsAPI } from '@/lib/api';
 
 interface Simulation { _id: string; decision: string; createdAt: string; scenarios: { score: number }[]; }
+interface ModelPrefs { preferredLLMModel: string; preferredRAGFramework: string; preferredEmbeddingModel: string; }
+
+const MODEL_DISPLAY: Record<string, string> = {
+  'gpt-4': 'GPT-4',
+  'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+  'claude-3-opus': 'Claude 3 Opus',
+  'claude-3-sonnet': 'Claude 3 Sonnet',
+  'llama-2': 'Llama 2 (70B)',
+  'mistral-7b': 'Mistral 7B',
+  'gemini-pro': 'Gemini Pro',
+  'langchain': 'LangChain',
+  'llamaindex': 'LlamaIndex',
+  'openai-embeddings': 'OpenAI Embeddings',
+  'huggingface-embeddings': 'HF Embeddings',
+  'cohere-embeddings': 'Cohere Embeddings',
+};
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [simulations, setSimulations] = useState<Simulation[]>([]);
   const [twinScore, setTwinScore] = useState(0);
+  const [modelPrefs, setModelPrefs] = useState<ModelPrefs | null>(null);
 
   useEffect(() => {
     const u = getUser();
@@ -22,6 +39,7 @@ export default function DashboardPage() {
     setTwinScore(u.twinProfile?.completionScore || 0);
     simulatorAPI.getHistory(t).then(d => setSimulations(d.simulations || [])).catch(() => {});
     twinAPI.getProfile(t).then(d => setTwinScore(d.twinProfile?.completionScore || 0)).catch(() => {});
+    modelsAPI.getPreferences(t).then(d => setModelPrefs(d)).catch(() => {});
   }, [router]);
 
   const logout = () => { clearAuth(); router.push('/'); };
@@ -38,6 +56,7 @@ export default function DashboardPage() {
     { label: 'Train My Twin', href: '/train', icon: '🧠', desc: 'Improve twin accuracy' },
     { label: 'Run Simulation', href: '/simulator', icon: '🔮', desc: 'Simulate a decision' },
     { label: 'Chat with Twin', href: '/chat', icon: '💬', desc: 'Talk to your AI clone' },
+    { label: 'AI Model Settings', href: '/settings/models', icon: '🤖', desc: 'Switch LLM / RAG models' },
   ];
 
   return (
@@ -98,6 +117,32 @@ export default function DashboardPage() {
              'Your twin has strong data. Simulations are highly personalized.'}
           </p>
         </motion.div>
+
+        {/* Active Model */}
+        {modelPrefs && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(6,182,212,0.25)', borderRadius: 18, padding: 24, marginBottom: 40 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <h3 style={{ fontWeight: 700, fontSize: 17 }}>🤖 Active AI Models</h3>
+              <Link href="/settings/models" style={{ fontSize: 13, color: '#06b6d4', textDecoration: 'none', fontWeight: 600 }}>Change →</Link>
+            </div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {[
+                { label: 'LLM', value: MODEL_DISPLAY[modelPrefs.preferredLLMModel] || modelPrefs.preferredLLMModel, icon: '🧠', color: '#7c3aed' },
+                { label: 'RAG', value: MODEL_DISPLAY[modelPrefs.preferredRAGFramework] || modelPrefs.preferredRAGFramework, icon: '🔗', color: '#06b6d4' },
+                { label: 'Embeddings', value: MODEL_DISPLAY[modelPrefs.preferredEmbeddingModel] || modelPrefs.preferredEmbeddingModel, icon: '📐', color: '#10b981' },
+              ].map((item) => (
+                <div key={item.label} style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${item.color}30`, borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>{item.icon}</span>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{item.label}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: item.color }}>{item.value}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Quick actions */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20, marginBottom: 40 }}>

@@ -1,6 +1,6 @@
 const express = require('express');
 const authMiddleware = require('../middleware/auth');
-const { generateTwinResponse } = require('../services/openai');
+const { generateTwinResponse } = require('../services/modelManager');
 const { chatMessages, getUserById } = require('../services/mockDb');
 const router = express.Router();
 router.use(authMiddleware);
@@ -10,7 +10,8 @@ router.post('/message', async (req, res) => {
     const { message, mode = 'advisor' } = req.body;
     if (!message) return res.status(400).json({ message: 'Message required' });
     const user = getUserById(req.userId);
-    const response = await generateTwinResponse(message, mode, user?.twinProfile);
+    const preferredModel = user?.modelPreferences?.preferredLLMModel;
+    const response = await generateTwinResponse(message, mode, user?.twinProfile, preferredModel);
     const chatMsg = { _id: `msg-${Date.now()}`, userId: req.userId, mode, message, response, createdAt: new Date() };
     if (!useDB()) {
       chatMessages.push(chatMsg);
