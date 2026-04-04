@@ -341,9 +341,14 @@ const dispatchToModel = async (model, systemPrompt, userPrompt, options = {}) =>
   }
 };
 
-// ─── Mock Responses (no API keys) ────────────────────────────────────────────
-
-const { simulateDecision: mockSimulateDecision, generateTwinResponse: mockTwinResponse, generateTwinProfile: mockGenerateProfile } = require('./openai');
+// ─── Mock Responses (no API keys configured) ─────────────────────────────────
+// Re-use the rich mock data from the original openai.js service as fallback
+// responses when no real API key is available for any provider.
+const {
+  simulateDecision: mockSimulateDecision,
+  generateTwinResponse: mockTwinResponse,
+  generateTwinProfile: mockGenerateProfile,
+} = require('./openai');
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
